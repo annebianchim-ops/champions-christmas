@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Christmas Game: Lead nurturing Champions</title>
+  <style>
+    :root {
+      --red: #D9263E;
+      --green: #1A936F;
+      --white: #F4F7F9;
+      --gold: #FFD700;
+      --dark-bg: rgba(10, 42, 39, 0.85);
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: url('christmas-background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: var(--white);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .snow {
+      position: absolute;
+      top: -10px;
+      color: var(--white);
+      font-size: 1.3em;
+      animation: fall linear forwards;
+      z-index: 10;
+      pointer-events: none;
+    }
+    @keyframes fall {
+      to { transform: translateY(105vh) rotate(360deg); }
+    }
+
+    .container {
+      background: var(--dark-bg);
+      backdrop-filter: blur(8px);
+      border-radius: 28px;
+      padding: 2.5rem;
+      max-width: 650px;
+      width: 92%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      position: relative;
+      z-index: 20;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 1.5rem;
+      color: var(--gold);
+      text-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0 20px;
+      border-radius: 14px;
+      border: none;
+      font-size: 1.05rem;
+      background: rgba(255, 255, 255, 0.95);
+      color: #000;
+    }
+
+    button {
+      background: var(--red);
+      color: var(--white);
+      border: none;
+      padding: 13px 28px;
+      font-size: 1.15rem;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    button:hover {
+      background: #b81e32;
+      transform: scale(1.04);
+    }
+
+    .question-number {
+      font-size: 1.1rem;
+      color: #a3d9b0;
+      margin-bottom: 0.5rem;
+    }
+
+    .question-text {
+      font-size: 1.35rem;
+      margin: 1rem 0 1.5rem;
+      line-height: 1.45;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin: 1.5rem 0;
+    }
+
+    .option {
+      background: rgba(26, 147, 111, 0.25);
+      padding: 14px;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+      text-align: left;
+      border: 2px solid transparent;
+      color: var(--white);
+    }
+
+    .option:hover {
+      background: rgba(26, 147, 111, 0.4);
+    }
+
+    .option.selected {
+      background: var(--gold);
+      color: #000;
+      border-color: var(--red);
+    }
+
+    .feedback {
+      margin: 18px 0;
+      min-height: 50px;
+      text-align: center;
+    }
+
+    .result-line {
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .tip-line {
+      font-size: 1.1rem;
+      font-weight: normal;
+      color: var(--white);
+      margin-top: 4px;
+    }
+
+    .correct { color: #4caf50; }
+    .wrong { color: var(--red); }
+
+    .hidden {
+      display: none;
+    }
+
+    .celebration {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('christmas-background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1s;
+    }
+
+    .celebration.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .score-box {
+      background: rgba(255, 255, 255, 0.94);
+      color: #000;
+      padding: 1.8rem 2.5rem;
+      border-radius: 24px;
+      font-size: 2.2rem;
+      font-weight: bold;
+      text-align: center;
+      max-width: 90%;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+  <!-- Intro Screen -->
+  <div id="intro" class="container">
+    <h1>🎄 Christmas Game: Lead nurturing Champions 🎅</h1>
+    <input type="text" id="userName" placeholder="Your Name" />
+    <input type="email" id="userEmail" placeholder="Your Work Email" />
+    <button id="startBtn">Start the Game!</button>
+  </div>
+
+  <!-- Quiz Screen -->
+  <div id="quiz" class="container hidden">
+    <div class="question-number">Question <span id="qIndex">1</span> of <span id="qTotal">10</span></div>
+    <div class="question-text" id="questionText">Loading...</div>
+    <div class="options" id="optionsContainer"></div>
+    <div class="feedback" id="feedback"></div>
+    <button id="nextBtn" class="hidden">Next →</button>
+  </div>
+
+  <!-- Celebration Screen -->
+  <div class="celebration" id="celebration">
+    <div class="score-box">
+      Ho Ho Ho, Champion! 🎉<br>You scored <span id="finalScore">0</span>%!
+    </div>
+  </div>
+
+  <script>
+    function createSnow() {
+      const snowContainer = document.body;
+      for (let i = 0; i < 80; i++) {
+        const snow = document.createElement('div');
+        snow.classList.add('snow');
+        snow.innerHTML = '❄';
+        snow.style.left = Math.random() * 100 + 'vw';
+        snow.style.opacity = Math.random() * 0.7 + 0.3;
+        snow.style.fontSize = (Math.random() * 14 + 10) + 'px';
+        snow.style.animationDuration = (Math.random() * 4 + 6) + 's';
+        snowContainer.appendChild(snow);
+      }
+    }
+
+    // Final questions from PDF/DOCX (10 total, cleaned)
+    const questions = [
+      {
+        text: "In the List email dashboard, “Flop Emails by CTR” section shows emails people opened just to grumble about the weather.",
+        type: "mc",
+        options: ["True", "False"],
+        correct: 1,
+        tip: "Look at the List email dashboard."
+      },
+      {
+        text: "If your CTR is below 2%, what does the dashboard’s AI Feedback suggest you do?",
+        type: "mc",
+        options: [
+          "Fire Dasher and Dancer; blame them for the sleigh's sluggish clicks.",
+          "Swap links for reindeer games—subs click faster chasing carrots.",
+          "Rally your reindeer with a snappier CTA—low CTR means they're napping on the job!"
+        ],
+        correct: 2,
+        tip: "It involves tweaking your subject line or CTA — not sending a letter to the Grinch."
+      },
+      {
+        text: "If your CTOR is 60.9%, what song do the elves DJ at the celebration?",
+        type: "mc",
+        options: [
+          "Silent Night",
+          "Jingle Bell ROCK-ctor",
+          "Last Christmas",
+          "Baby, It’s Cold Outside"
+        ],
+        correct: 1,
+        tip: "The Click-to-Open Rate (CTOR) formula — (Unique Clicks ÷ Unique Opens) × 100 — measures how engaging your email content is to those who actually opened it."
+      },
+      {
+        text: "Which template should you use for an email inviting hospitality leads to a “Holiday Staffing Webinar”?",
+        type: "mc",
+        options: ["Welcome", "Promotional", "Event/Webinar", "Thank You"],
+        correct: 2,
+        tip: "Look at “How to craft great marketing emails — a practical playbook”."
+      },
+      {
+        text: "According to the playbook, how many CTAs should your monthly newsletter have?",
+        type: "mc",
+        options: ["1-3", "4-6", "Sky is the limit!"],
+        correct: 0,
+        tip: "Look at “How to craft great marketing emails — a practical playbook”."
+      },
+      {
+        text: "Which subject-line length keeps the elves’ iPhones from trimming Santa’s beard?",
+        type: "mc",
+        options: [
+          "140 characters – epic saga",
+          "72 – mini-series",
+          "50 – elf-sized screen friendly",
+          "12 – haiku only"
+        ],
+        correct: 2,
+        tip: "Look at “How to craft great marketing emails — a practical playbook”."
+      },
+      {
+        text: "In the new email template, where do social-proof gingerbread men hang their reviews?",
+        type: "mc",
+        options: [
+          "Above the sleigh",
+          "Beside the primary CTA",
+          "In Santa’s boot",
+          "Footer coal"
+        ],
+        correct: 1,
+        tip: "Check your promotional mail templates."
+      },
+      {
+        text: "What colour button is recommended for Primary CTA button?",
+        type: "mc",
+        options: ["Santa's Hat", "Gingerbread men", "Snow"],
+        correct: 0,
+        tip: "Look at “How to craft great marketing emails — a practical playbook”."
+      },
+      {
+        text: "You can test your email links by clicking them while wearing a Santa hat — it doesn’t affect deliverability.",
+        type: "mc",
+        options: ["True", "False"],
+        correct: 0,
+        tip: "Think like a gingerbread man and ask, “What’s the real best practice for testing links before sending holiday emails?”"
+      },
+      {
+        text: "What’s the “North Pole-approved” way to test your email links before sending?",
+        type: "mc",
+        options: [
+          "Click every link twice: once as you, once as Santa’s grumpiest elf.",
+          "Send a test email and ho-ho-hover over every link before launch.",
+          "North Pole rule: test links on all devices before they leave the workshop."
+        ],
+        correct: 1,
+        tip: "Elves’ secret: ho-ho-hover on each link to check its destination before sending."
+      }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    // Pre-initialize answer array
+    let userAnswers = new Array(questions.length).fill(null);
+
+    const introScreen = document.getElementById('intro');
+    const quizScreen = document.getElementById('quiz');
+    const celebrationScreen = document.getElementById('celebration');
+    const startBtn = document.getElementById('startBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const qIndexEl = document.getElementById('qIndex');
+    const qTotalEl = document.getElementById('qTotal');
+    const questionTextEl = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const feedbackEl = document.getElementById('feedback');
+    const finalScoreEl = document.getElementById('finalScore');
+
+    qTotalEl.textContent = questions.length;
+
+    startBtn.addEventListener('click', () => {
+      const name = document.getElementById('userName').value.trim();
+      const email = document.getElementById('userEmail').value.trim();
+      if (!name || !email) {
+        alert("🎅 Please enter your name and work email!");
+        return;
+      }
+      introScreen.classList.add('hidden');
+      quizScreen.classList.remove('hidden');
+      loadQuestion();
+    });
+
+    function loadQuestion() {
+      const q = questions[currentQuestion];
+      qIndexEl.textContent = currentQuestion + 1;
+      questionTextEl.textContent = q.text;
+      optionsContainer.innerHTML = '';
+      feedbackEl.innerHTML = '';
+      nextBtn.classList.add('hidden');
+
+      q.options.forEach((opt, idx) => {
+        const div = document.createElement('div');
+        div.classList.add('option');
+        div.textContent = String.fromCharCode(97 + idx) + ') ' + opt;
+        div.addEventListener('click', () => {
+          document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+          div.classList.add('selected');
+          checkAnswer(idx);
+        });
+        optionsContainer.appendChild(div);
+      });
+    }
+
+    function checkAnswer(selectedIndex) {
+      const q = questions[currentQuestion];
+      const isCorrect = selectedIndex === q.correct;
+
+      // ✅ Store answer immediately
+      userAnswers[currentQuestion] = q.options[selectedIndex];
+
+      if (isCorrect) {
+        score++;
+        feedbackEl.innerHTML = '<div class="result-line correct">✅ Correct!</div>';
+      } else {
+        feedbackEl.innerHTML = `
+          <div class="result-line wrong">❌ Wrong!</div>
+          <div class="tip-line">${q.tip}</div>
+        `;
+      }
+
+      nextBtn.classList.remove('hidden');
+    }
+
+    nextBtn.addEventListener('click', () => {
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        loadQuestion();
+      } else {
+        const percentage = Math.round((score / questions.length) * 100);
+
+        // ✅ Send complete, structured data to Zapier
+        fetch('https://hooks.zapier.com/hooks/catch/8327263/ua6x62b/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: document.getElementById('userName').value.trim(),
+            email: document.getElementById('userEmail').value.trim(),
+            score: percentage,
+            answers: userAnswers
+          })
+        })
+        .catch(err => console.error("⚠️ Submission to Zapier failed:", err));
+
+        finalScoreEl.textContent = percentage;
+        quizScreen.classList.add('hidden');
+        setTimeout(() => {
+          celebrationScreen.classList.add('show');
+        }, 300);
+      }
+    });
+
+    createSnow();
+  </script>
+</body>
+</html>
